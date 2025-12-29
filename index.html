@@ -202,10 +202,10 @@
    </section>
 
    <!-- PORTFOLIO / CASE STUDIES -->
-   <section id="portfolio" class="py-20 md:py-28 bg-gray-900/50 border-t border-gray-800">
+   <section id="portfolio" class="py-20 md:py-28 bg-gray-900/40 portfolio-section">
      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
        <header class="text-center mb-16">
-         <h2 class="text-3xl sm:text-5xl font-bold tracking-tight mb-4">Proven Results</h2>
+         <h2 class="text-2xl sm:text-5xl font-bold tracking-tight mb-4">Proven Results</h2>
          <p class="text-gray-400 text-lg">Real campaigns, real results</p>
        </header>
 
@@ -310,13 +310,14 @@
      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
          <div>
-           <h2 class="text-3xl sm:text-4xl font-bold mb-6">Hi, I'm Your PPC & Analytics Partner</h2>
+           <h2 class="text-3xl sm:text-4xl font-bold mb-6">Hi, We’re Your PPC & Analytics Partner</h2>
            <p class="text-gray-400 text-lg leading-relaxed mb-4">
-             With 5+ years of experience managing over $2M in ad spend across Google Ads, Meta Ads, and LinkedIn Ads, I specialize in helping businesses fix their broken tracking and scale profitably.
+             We manage and optimize high-impact ad campaigns across Google Ads, Meta Ads, and LinkedIn Ads, helping businesses fix broken tracking and scale profitably.
            </p>
            <p class="text-gray-400 text-lg leading-relaxed mb-6">
-             I believe in an "Attribution First" approach - ensuring your data is accurate before scaling campaigns. This philosophy has helped my clients achieve an average 150% increase in ROAS while reducing wasted ad spend.
-           </p>
+             We believe in an “Attribution First” approach—ensuring your data is accurate before scaling campaigns.
+             This philosophy has helped our clients achieve an average 150% increase in ROAS while significantly reducing wasted ad spend.
+            </p>
            <div class="space-y-3">
              <div class="flex items-center gap-3">
                <div class="w-2 h-2 bg-indigo-500 rounded-full"></div>
@@ -337,7 +338,7 @@
            </div>
          </div>
          <div class="bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-2xl p-8 border border-indigo-500/30">
-           <h3 class="text-2xl font-bold mb-6">My Approach</h3>
+           <h3 class="text-2xl font-bold mb-6">Our Approach</h3>
            <div class="space-y-4">
              <div class="flex gap-4">
                <div class="text-2xl">1️⃣</div>
@@ -684,12 +685,14 @@
  </footer>
 
  <script>
-   // Cursor Follow Glow Effect
+   // Cursor Follow Glow Effect & Scroll Performance
    const cursorGlow = document.getElementById('cursorGlow');
    let mouseX = 0;
    let mouseY = 0;
    let glowX = 0;
    let glowY = 0;
+   let scrollTimeout;
+   let isScrolling = false;
 
    document.addEventListener('mousemove', (e) => {
      mouseX = e.clientX;
@@ -697,16 +700,23 @@
    });
 
    function animateCursorGlow() {
-     glowX += (mouseX - glowX) * 0.1;
-     glowY += (mouseY - glowY) * 0.1;
-     cursorGlow.style.left = glowX + 'px';
-     cursorGlow.style.top = glowY + 'px';
-     cursorGlow.style.opacity = '1';
+     // Pause animation during scrolling for better performance
+     if (!isScrolling) {
+       glowX += (mouseX - glowX) * 0.1;
+       glowY += (mouseY - glowY) * 0.1;
+       cursorGlow.style.left = glowX + 'px';
+       cursorGlow.style.top = glowY + 'px';
+       cursorGlow.style.opacity = '1';
+     } else {
+       cursorGlow.style.opacity = '0.5'; // Dim during scroll
+     }
      requestAnimationFrame(animateCursorGlow);
    }
 
    document.addEventListener('mouseenter', () => {
-     cursorGlow.style.opacity = '1';
+     if (!isScrolling) {
+       cursorGlow.style.opacity = '1';
+     }
    });
 
    document.addEventListener('mouseleave', () => {
@@ -714,6 +724,33 @@
    });
 
    animateCursorGlow();
+
+   // Scroll Performance Optimization
+
+   function handleScroll() {
+     if (!isScrolling) {
+       document.body.classList.add('scrolling');
+       isScrolling = true;
+     }
+     
+     clearTimeout(scrollTimeout);
+     scrollTimeout = setTimeout(() => {
+       document.body.classList.remove('scrolling');
+       isScrolling = false;
+     }, 150);
+   }
+
+   // Throttled scroll listener for performance
+   let ticking = false;
+   window.addEventListener('scroll', () => {
+     if (!ticking) {
+       window.requestAnimationFrame(() => {
+         handleScroll();
+         ticking = false;
+       });
+       ticking = true;
+     }
+   }, { passive: true });
 
    // Scroll Reveal Animation
    const observerOptions = {

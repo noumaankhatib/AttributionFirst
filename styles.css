@@ -16,6 +16,35 @@ body {
   color: var(--text-primary);
   scroll-behavior: smooth;
   overflow-x: hidden;
+  /* Improve scroll performance */
+  -webkit-overflow-scrolling: touch;
+  transform: translateZ(0);
+}
+
+/* Smooth scrolling container */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Optimize scroll performance - reduce repaints */
+main {
+  transform: translateZ(0);
+  will-change: scroll-position;
+}
+
+/* Disable backdrop-filter during scroll for better performance */
+@media (prefers-reduced-motion: no-preference) {
+  /* Only apply heavy effects when not scrolling */
+  body.scrolling section[class*="bg-gray"] {
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+  
+  body:not(.scrolling) section[class*="bg-gray"] {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
 }
 
 .selection\:bg-indigo-600 ::selection {
@@ -30,8 +59,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: hidden; /* Only hero needs overflow hidden for orbs */
   background: var(--bg-deep-black);
+  isolation: isolate; /* Create stacking context */
 }
 
 /* Floating Neon Orbs */
@@ -321,6 +351,7 @@ body {
   background: linear-gradient(135deg, var(--color-cyan), var(--color-violet));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -414,21 +445,23 @@ body {
   background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
   pointer-events: none;
   z-index: 9999;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) translateZ(0);
   transition: opacity 0.3s ease;
   mix-blend-mode: screen;
+  will-change: transform, opacity;
 }
 
 /* Smooth Scroll Reveal */
 .reveal-on-scroll {
   opacity: 0;
-  transform: translateY(30px);
+  transform: translateY(30px) translateZ(0);
   transition: opacity 0.8s ease, transform 0.8s ease;
+  will-change: opacity, transform;
 }
 
 .reveal-on-scroll.revealed {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) translateZ(0);
 }
 
 /* Responsive Design */
@@ -474,41 +507,625 @@ header {
   z-index: 50;
   background: rgba(2, 6, 23, 0.95);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+  will-change: transform;
+  transform: translateZ(0); /* Force GPU acceleration */
 }
 
 header nav a:hover {
   color: #a855f7;
 }
 
-/* Existing styles for rest of the page */
-.hero-glow {
+/* ========================================
+   CONSISTENT PAGE-WIDE STYLES
+   ======================================== */
+
+/* Section Base Styles */
+section {
   position: relative;
+  /* Removed overflow: hidden to prevent scroll issues */
+}
+
+/* Section Headers - Consistent Style */
+section header,
+section > div > header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+section h2 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+section h3 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 1rem;
+}
+
+section p.subtitle {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* Consistent Section Backgrounds */
+section {
+  background: var(--bg-deep-black);
+  transform: translateZ(0); /* Force GPU acceleration for smoother scrolling */
+}
+
+section.bg-gray-900\/50 {
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+section.bg-gray-900 {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Consistent Section Padding - Let Tailwind classes override if needed */
+section.py-20 {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
+
+section.py-28 {
+  padding-top: 7rem;
+  padding-bottom: 7rem;
+}
+
+@media (min-width: 768px) {
+  section.md\:py-28 {
+    padding-top: 7rem;
+    padding-bottom: 7rem;
+  }
+}
+
+/* Consistent Borders */
+section.border-t,
+section.border-b {
+  border-color: rgba(168, 85, 247, 0.2) !important;
+}
+
+/* Card Styles - Universal */
+.card-hover,
+article.card-hover {
+  position: relative;
+  background: rgba(15, 23, 42, 0.7) !important;
+  border: 1px solid rgba(168, 85, 247, 0.2) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  will-change: transform;
+  transform: translateZ(0); /* Force GPU acceleration */
+}
+
+.card-hover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(168, 85, 247, 0.05) 0%,
+    rgba(6, 182, 212, 0.03) 50%,
+    rgba(236, 72, 153, 0.05) 100%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 0;
+}
+
+.card-hover:hover {
+  transform: translateY(-8px) translateZ(0);
+  border-color: rgba(168, 85, 247, 0.4) !important;
+  box-shadow: 0 20px 40px rgba(168, 85, 247, 0.15),
+              0 0 30px rgba(6, 182, 212, 0.1),
+              0 0 50px rgba(236, 72, 153, 0.05);
+}
+
+.card-hover:hover::before {
+  opacity: 1;
+}
+
+.card-hover > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Service Cards */
+article.card-hover {
+  background: rgba(15, 23, 42, 0.7) !important;
+}
+
+article.card-hover h3 {
+  color: var(--color-violet);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+article.card-hover p {
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+
+article.card-hover ul {
+  color: var(--text-secondary);
+}
+
+article.card-hover ul li {
+  color: rgba(156, 163, 175, 0.8);
+  font-size: 0.875rem;
+}
+
+/* Case Study Cards */
+/* Portfolio/Proven Results Section */
+section#portfolio.portfolio-section {
+  border-top: 1px solid rgba(168, 85, 247, 0.25);
+  background: rgba(15, 23, 42, 0.4) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Case Study Cards in Portfolio Section */
+section#portfolio .bg-gray-800\/50 {
+  position: relative;
+  background: rgba(15, 23, 42, 0.7) !important;
+  border: 1px solid rgba(168, 85, 247, 0.25) !important;
+  border-radius: 1rem;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+section#portfolio .bg-gray-800\/50::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(168, 85, 247, 0.08) 0%,
+    rgba(6, 182, 212, 0.04) 50%,
+    rgba(236, 72, 153, 0.08) 100%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+section#portfolio .bg-gray-800\/50:hover {
+  transform: translateY(-8px) translateZ(0);
+  border-color: rgba(168, 85, 247, 0.5) !important;
+  box-shadow: 0 20px 40px rgba(168, 85, 247, 0.2),
+              0 0 30px rgba(6, 182, 212, 0.15),
+              0 0 50px rgba(236, 72, 153, 0.1);
+}
+
+section#portfolio .bg-gray-800\/50:hover::before {
+  opacity: 1;
+}
+
+section#portfolio .bg-gray-800\/50 > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Internal borders within case study cards */
+section#portfolio .border-t.border-gray-700 {
+  border-top: 1px solid rgba(168, 85, 247, 0.2) !important;
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+/* Case Study Card Border (outer border) */
+section#portfolio .border.border-gray-700 {
+  border: 1px solid rgba(168, 85, 247, 0.25) !important;
+}
+
+section#portfolio h3 {
+  color: var(--text-primary);
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+section#portfolio .text-indigo-400 {
+  color: var(--color-violet) !important;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* Portfolio Section Header */
+section#portfolio header {
+  margin-bottom: 4rem;
+}
+
+section#portfolio header h2 {
+  color: var(--text-primary);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+section#portfolio header p {
+  color: var(--text-secondary);
+  font-size: 1.125rem;
+}
+
+/* FAQ Cards */
+section .bg-gray-800\/50 {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(168, 85, 247, 0.2) !important;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+section .bg-gray-800\/50:hover {
+  border-color: rgba(168, 85, 247, 0.4) !important;
+  box-shadow: 0 10px 30px rgba(168, 85, 247, 0.1);
+}
+
+section .bg-gray-800\/50 h4 {
+  color: var(--color-violet) !important;
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+section .bg-gray-800\/50 p {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* Contact Form Cards */
+section#contact .bg-gray-900\/50 {
+  background: rgba(15, 23, 42, 0.7) !important;
+  border: 1px solid rgba(168, 85, 247, 0.2) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transform: translateZ(0);
+}
+
+section#contact .bg-gradient-to-br {
+  background: linear-gradient(135deg, 
+    rgba(168, 85, 247, 0.1) 0%,
+    rgba(139, 92, 246, 0.05) 100%) !important;
+  border: 1px solid rgba(168, 85, 247, 0.3) !important;
+  transform: translateZ(0);
+}
+
+/* Form Inputs - Consistent Style */
+input[type="text"],
+input[type="email"],
+input[type="url"],
+select,
+textarea {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 1px solid rgba(168, 85, 247, 0.3) !important;
+  border-radius: 0.5rem;
+  color: var(--text-primary) !important;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="url"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-violet) !important;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1),
+              0 0 20px rgba(168, 85, 247, 0.2);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(156, 163, 175, 0.5) !important;
+}
+
+/* Buttons - Consistent Style */
+.cta-button {
+  position: relative;
+  background: linear-gradient(135deg, var(--color-violet) 0%, var(--color-pink) 100%);
+  color: white !important;
+  font-weight: 600;
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4),
+              0 0 30px rgba(236, 72, 153, 0.2);
   overflow: hidden;
 }
 
-.cta-button {
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+.cta-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.cta-button:hover::before {
+  left: 100%;
 }
 
 .cta-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.6);
+  box-shadow: 0 10px 30px rgba(168, 85, 247, 0.6),
+              0 0 50px rgba(236, 72, 153, 0.3);
 }
 
-.section-divider {
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(to right, transparent, #374151, transparent);
+/* Links - Consistent Style */
+a {
+  transition: all 0.3s ease;
+  color: inherit;
 }
 
-.card-hover {
+a:hover {
+  color: var(--color-violet) !important;
+}
+
+a.text-indigo-400,
+a.text-indigo-400:hover {
+  color: var(--color-violet) !important;
+}
+
+/* Social Proof Section */
+section.py-12 {
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+section.py-12 .text-gray-400 {
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+section.py-12 .text-gray-500 {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+section.py-12 .text-indigo-500 {
+  color: var(--color-violet);
+}
+
+/* About Section */
+section#about .bg-gradient-to-br {
+  background: linear-gradient(135deg, 
+    rgba(168, 85, 247, 0.1) 0%,
+    rgba(139, 92, 246, 0.05) 100%) !important;
+  border: 1px solid rgba(168, 85, 247, 0.3) !important;
+  backdrop-filter: blur(20px);
+}
+
+section#about .text-indigo-300 {
+  color: var(--color-violet);
+  font-weight: 600;
+}
+
+section#about .text-gray-400 {
+  color: var(--text-secondary);
+}
+
+/* Footer */
+footer {
+  background: rgba(2, 6, 23, 0.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+footer .text-indigo-400 {
+  color: var(--color-violet) !important;
+}
+
+footer .text-gray-500 {
+  color: var(--text-secondary);
+}
+
+footer a {
+  color: var(--text-secondary);
   transition: all 0.3s ease;
 }
 
-.card-hover:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
+footer a:hover {
+  color: var(--text-primary);
+}
+
+/* Section Divider */
+.section-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(to right, 
+    transparent, 
+    rgba(168, 85, 247, 0.3), 
+    transparent);
+  margin: 2rem 0;
+}
+
+/* Consistent Text Colors */
+.text-gray-300 {
+  color: var(--text-primary) !important;
+}
+
+.text-gray-400 {
+  color: var(--text-secondary) !important;
+}
+
+.text-gray-500 {
+  color: rgba(156, 163, 175, 0.8) !important;
+}
+
+.text-gray-600 {
+  color: rgba(156, 163, 175, 0.6) !important;
+}
+
+.text-indigo-400 {
+  color: var(--color-violet) !important;
+}
+
+.text-indigo-500 {
+  color: var(--color-violet) !important;
+}
+
+.text-green-400 {
+  color: #10b981;
+}
+
+/* Consistent Border Colors */
+.border-gray-700 {
+  border-color: rgba(168, 85, 247, 0.2) !important;
+}
+
+.border-gray-800 {
+  border-color: rgba(168, 85, 247, 0.15) !important;
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+  section {
+    padding: 3rem 0;
+  }
+  
+  section h2 {
+    font-size: 2rem;
+  }
+  
+  .card-hover {
+    padding: 1.5rem;
+  }
+}
+
+/* Selection */
+::selection {
+  background-color: rgba(168, 85, 247, 0.3);
+  color: var(--text-primary);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-deep-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.3);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.5);
+}
+
+/* Additional Consistency Enhancements */
+
+/* Consistent spacing for lists */
+ul.space-y-2 li {
+  padding-left: 0;
+  line-height: 1.6;
+}
+
+/* Consistent badge/pill styling */
+.text-sm.uppercase.tracking-widest {
+  letter-spacing: 0.1em;
+  font-weight: 500;
+}
+
+/* Consistent grid gaps */
+.grid.gap-8 {
+  gap: 2rem;
+}
+
+/* Consistent max-width containers */
+.max-w-6xl,
+.max-w-5xl,
+.max-w-4xl,
+.max-w-7xl {
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Ensure consistent font rendering */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Consistent focus states */
+*:focus-visible {
+  outline: 2px solid var(--color-violet);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* Consistent transitions - Applied to interactive elements */
+a,
+button {
+  transition-property: color, background-color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 0.3s;
+}
+
+input,
+select,
+textarea {
+  transition-property: border-color, box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 0.3s;
+}
+
+
+/* Smooth animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Consistent image/icon sizing */
+img,
+svg,
+.text-4xl,
+.text-2xl {
+  display: inline-block;
+  vertical-align: middle;
 }
 
